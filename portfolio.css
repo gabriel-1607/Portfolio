@@ -1,3 +1,4 @@
+/* This the portfolio.css by Gabriel Enrique Ambrosini Cabrera*/
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -81,4 +82,10 @@ body {
     color: white;
     text-align: center;
     padding: 10px;
+  }
+
+  img {
+    overflow: hidden;
+    max-width: fit-content;
+    max-height: fit-content;
   }
