@@ -1,0 +1,59 @@
+{% extends "disposicion.html" %}
+
+
+{% block bar %}
+    <li><a href="/solicitudes">Solicitudes</a></li>
+    <li><a href="/usuarios">Usuarios</a></li>
+    <li><a href="/pagos">Pagos</a></li>
+{% endblock %}
+
+{% block main %}
+    {% if solicitudes %}
+    <!-- Lista de solicitudes -->
+    <div style="overflow-x:auto">
+        <table class="table table-striped table-warning mx-auto" style="width: 75%;">
+            <!-- Cabeceras de la lista -->
+            <tr>
+                <td>Nombre</td>
+                <td>Tipo</td>
+                <td>Fecha de nacimiento</td>
+                <td>Teléfono</td>
+                <td>Correo</td>
+                <td>Nombre del representante</td>
+                <td>Dirección</td>
+                <td>Colegio</td>
+                <td>Hora de solicitud</td>
+                <td></td>
+            </tr>
+        {% for i in range( solicitudes | length ) %}
+            <tr>
+                <td>{% if solicitudes[i][1] %}{{ solicitudes[i][1] }}{% endif %}</td>
+                <td>{% if solicitudes[i][2] %}{{ solicitudes[i][2] }}{% endif %}</td>
+                <td>{% if solicitudes[i][3] %}{{ solicitudes[i][3] }}{% endif %}</td>
+                <td>{% if solicitudes[i][4] %}{{ solicitudes[i][4] }}{% endif %}</td>
+                <td>{% if solicitudes[i][5] %}{{ solicitudes[i][5] }}{% endif %}</td>
+                <td>{% if solicitudes[i][6] %}{{ solicitudes[i][6] }}{% endif %}</td>
+                <td>{% if solicitudes[i][7] %}{{ solicitudes[i][7] }}{% endif %}</td>
+                <td>{% if solicitudes[i][8] %}{{ solicitudes[i][8] }}{% endif %}</td>
+                <td>{% if solicitudes[i][9] %}{{ solicitudes[i][9] }}{% endif %}</td>
+                <td>
+                    <!-- Botón para borrar una solicitud -->
+                    <form action="/borrar" method="post">
+                        <button type="submit" class="btn btn1">Borrar</button>
+                        <input type="hidden" value="{{ solicitudes[i][0] }}" name="id">
+                    </form>
+                    <hr style="margin: 0.2rem">
+                    <!-- Botón para aceptar una solicitud -->
+                    <form action="/aceptar" method="post">
+                        <button type="submit" class="btn btn1">Aceptar</button>
+                        <input type="hidden" value="{{ solicitudes[i][0] }}" name="id">
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <p class="text-center alert alert-info">No hay solicitudes de registro</p>
+    {% endif %}
+{% endblock %}

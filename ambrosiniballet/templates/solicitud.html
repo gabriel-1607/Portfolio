@@ -1,0 +1,35 @@
+{% extends "disposicion.html" %}
+
+{% block main %}
+
+    <main class="mx-auto text-center">
+        <h2 id="t">
+        {% if tipo %}
+            Inscripción de alumnas
+        {% else %}
+            Inscripción de profesoras
+        {% endif %}
+        </h2>
+        <p>¡Únete y participa de nuestro arte en Ambrosini Ballet!</p>
+        <section id="{% if tipo %}alumna{% else %}profesora{% endif %}" style="display: inline-block;">
+            <h2>Regístrate en la academia</h2>
+            <!-- Formulario de inscripcción -->
+            <form action="/solicitud" method="post">
+                <input required type="hidden" name="tipo" value="{% if tipo %}alumna{% else %}profesora{% endif %}">
+                <input required autocomplete="off" type="text" name="nombre" placeholder="Nombre completo de la alumna"><br>
+                <input required autocomplete="off" type="date" name="nacimiento" placeholder="Fecha de nacimiento de la alumna"><br>
+                <input required autocomplete="off" type="text" name="telefono" placeholder="Telefono con WhatsApp"><br>
+                <input required autocomplete="off" type="text" name="correo" placeholder="Correo electrónico">
+                {% if tipo %}
+                <br>
+                <input required autocomplete="off" type="text" name="nombrer" placeholder="Nombre completo del representante"><br>
+                <input required autocomplete="off" type="text" name="direccion" placeholder="Dirección"><br>
+                <input required autocomplete="off" type="text" name="colegio" placeholder="Colegio de la alumna">
+                {% endif %}
+                <hr style="margin: 0.2 rem">
+                <button class="btn btn-light" type="submit">Enviar solicitud</button>
+            </form>
+        </section>
+    </main>
+
+{% endblock %}

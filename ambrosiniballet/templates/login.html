@@ -1,0 +1,16 @@
+{% extends "disposicion.html" %}
+
+{% block main %}
+    {% if aviso == "clave" %}
+    <!-- Alerta de error -->
+    <p class="text-center alert alert-warning">Usuario o contraseña inválidos</p>
+    {% endif %}
+    <!-- Formulario para inciar sesión -->
+    <h2 class="text-center">Ingresa a tu cuenta</h2>
+    <form action="/login", method="post" class="mx-auto text-center">
+        <input name="nombre" required autocomplete="off" type="text" placeholder="Nombre de usuario"><br style="margin: 2rem;">
+        <input name="clave" required autocomplete="off" type="password" placeholder="Contraseña"><br>
+        <button type="submit">Ingresar</button>
+    </form>
+
+{% endblock %}

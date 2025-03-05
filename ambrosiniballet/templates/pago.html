@@ -1,0 +1,35 @@
+{% extends "disposicion.html" %}
+
+
+{% block bar %}
+    <li><a href="/pago">Ingresar pago</a></li>
+    <li><a href="/mispagos">Revisar pagos</a></li>
+{% endblock %}
+
+{% block main %}
+    {% if aviso == "bien" %}
+    <!-- Mensaje de confirmación -->
+    <p class="text-center alert alert-info">Pago registrado</p>
+    {% elif aviso == "nombre" %}
+    <!-- Mensaje de error de nombre de usuario -->
+    <p class="text-center alert alert-warning">Ingresa un nombre de usuario válido</p>
+    {% elif aviso == "monto" %}
+    <!-- Mensaje de error de entrada del usuario en la casilla de monto -->
+    <p class="text-center alert alert-warning">Ingresa un monto válido</p>
+    {% endif %}
+    <!-- Fromulario para registrar un pago -->
+    <form action="/pago" method="post" class="mx-auto text-center">
+        <input type="text" autocomplete="off" name="usuario" placeholder="Nombre de usuario" required><br>
+        <select name="concepto" required>
+            <option selected disabled value="">Concepto</option>
+            <option value="vestido">Vestido</option>
+            <option value="pension">Pensión</option>
+            <option value="otro">Otro</option>
+        </select><br>
+        <input type="text" autocomplete="off" name="enlace" placeholder="Enlace de drive" required><br>
+        <input type="text" autocomplete="off" name="monto" placeholder="Monto" required><br>
+        <input type="text" autocomplete="off" name="comentario" placeholder="Comentario" required><br>
+        <input type="date" autocomplete="off" name="fecha" placeholder="Nombre de usuario" required><br>
+        <button type="submit">Registrar pago</button>
+    </form>
+{% endblock %}

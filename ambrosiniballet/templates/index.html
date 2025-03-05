@@ -1,0 +1,25 @@
+{% extends "disposicion.html" %}
+
+{% block main %}
+    <!-- Botón para solicitar registro -->
+    {% if not session["user_id"] %}
+    <form action="/solicitud" class="text-center" style="padding-top: 2rem">
+        <button class="btn mx-auto btn1">Solicitar registro</button>
+        <select name="tipo" class="form-select mx-auto" style="width: 20rem" required>
+            <option selected disabled value="">Profesora o alumna</option>
+            <option value="profesora">Profesora</option>
+            <option value="alumna">Alumna</option>
+        </select>
+    </form>
+    <p style="padding-top: 5%"></p>
+    <!-- Botón para iniciar sesión -->
+    <form action="/login" class="text-center">
+        <button class="btn1 btn mx-auto">Iniciar sesión</button>
+    </form>
+    {% endif %}
+    <p style="padding: 2rem"></p>
+    <!-- Imagen de clase de ballet -->
+    <div class="mx-auto text-center">
+        <img src="/static/Ambrosini_Ballet.jpg" alt="Ambrosini Ballet" style="width: 50%; height: 50%;">
+    </div>
+{% endblock %}

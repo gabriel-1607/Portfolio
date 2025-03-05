@@ -1,0 +1,62 @@
+{% extends "disposicion.html" %}
+
+
+{% block bar %}
+    {% if nombre %}
+    <li><a href="/pago">Ingresar pago</a></li>
+    <li><a href="/mispagos">Revisar pagos</a></li>
+    {% else %}
+    <li><a href="/solicitudes">Solicitudes</a></li>
+    <li><a href="/usuarios">Usuarios</a></li>
+    <li><a href="/pagos">Pagos</a></li>
+    {% endif %}
+{% endblock %}
+
+{% block main %}
+    {% if pagos %}
+    <!-- Lista de pagos -->
+    <div style="overflow-x:auto">
+        <table class="table table-striped table-warning mx-auto" style="width: 75%;">
+            <!-- Cabeceras de la lista de pagos -->
+            <tr>
+                <td>Enlaces de drive</td>
+                <td>Persona</td>
+                <td>Concepto</td>
+                <td>Cantidad</td>
+                <td>Comentario</td>
+                <td>Fecha</td>
+                <td>Confirmación</td>
+                {% if not nombre %}<td></td>{% endif %}
+            </tr>
+        {% for i in range( pagos | length ) %}
+            <tr>
+                <td><a href="{{ pagos[i][2] }}">Enlace</a></td>
+                <td>{% if not nombre %}{{ usuarios[i][0] }}{% else %}{{ nombre }}{% endif %}</td>
+                <td>{% if pagos[i][3] %}{{ pagos[i][3] }}{% endif %}</td>
+                <td>{% if pagos[i][4] %}{{ pagos[i][4] }}{% endif %}</td>
+                <td>{% if pagos[i][5] %}{{ pagos[i][5] }}{% endif %}</td>
+                <td>{% if pagos[i][6] %}{{ pagos[i][6] }}{% endif %}</td>
+                <td>{% if pagos[i][7] %}Confirmado{% else %}Sin confirmar{% endif %}</td>
+                {% if not nombre %}
+                <td>
+                    <!-- Botón para confirmar un pago -->
+                    <form action="/aceptar" method="post">
+                        <button type="submit" class="btn btn1">Confirmar</button>
+                        <input type="hidden" value="{{ pagos[i][0] }}" name="id-pago">
+                    </form>
+                    <hr style="margin: 0.2rem">
+                    <!-- Botón para eliminar un pago -->
+                    <form action="/borrar" method="post">
+                        <button type="submit" class="btn btn1">Borrar</button>
+                        <input type="hidden" value="{{ pagos[i][0] }}" name="id-pago">
+                    </form>
+                </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <p class="text-center alert alert-info">No hay pagos registrados</p>
+    {% endif %}
+{% endblock %}

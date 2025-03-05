@@ -1,0 +1,58 @@
+{% extends "disposicion.html" %}
+
+
+{% block bar %}
+    <li><a href="/solicitudes">Solicitudes</a></li>
+    <li><a href="/usuarios">Usuarios</a></li>
+    <li><a href="/pagos">Pagos</a></li>
+{% endblock %}
+
+{% block main %}
+    {% if usuarios %}
+    <!-- Lista de usuarios -->
+    <div style="overflow-x:auto">
+        <table class="table table-striped table-warning mx-auto" style="width: 75%;">
+            <!-- Cabeceras de la lista -->
+            <tr>
+                <td>Nombre</td>
+                <td>Tipo</td>
+                <td>Fecha de nacimiento</td>
+                <td>Teléfono</td>
+                <td>Correo</td>
+                <td>Nombre del representante</td>
+                <td>Dirección</td>
+                <td>Colegio</td>
+                <td></td>
+            </tr>
+        {% for i in range( usuarios | length ) %}
+            <tr>
+                <td>{{ usuarios[i][1] }}</td>
+                <td>{{ usuarios[i][2] }}</td>
+                <td>{% if usuarios[i][4] %}{{ usuarios[i][4] }}{% endif %}</td>
+                <td>{% if usuarios[i][5] %}{{ usuarios[i][5] }}{% endif %}</td>
+                <td>{% if usuarios[i][6] %}{{ usuarios[i][6] }}{% endif %}</td>
+                <td>{% if usuarios[i][7] %}{{ usuarios[i][7] }}{% endif %}</td>
+                <td>{% if usuarios[i][8] %}{{ usuarios[i][8] }}{% endif %}</td>
+                <td>{% if usuarios[i][9] %}{{ usuarios[i][9] }}{% endif %}</td>
+                <td>
+                    <!-- Botón para borrar un usuario -->
+                    <form action="/borrar" method="post">
+                        <button type="submit" class="btn btn1">Borrar</button>
+                        <input type="hidden" value="{{ usuarios[i][0] }}" name="id-usuario">
+                    </form>
+                    <hr style="margin: 0.2rem">
+                    <!-- Botón para cambiar la clave a un usuario -->
+                    <form action="/cclave" method="post">
+                        <button type="submit" class="btn btn1">Cambiar su clave</button>
+                        <input type="hidden" value="{{ usuarios[i][0] }}" name="id">
+                        <input type="hidden" value="1" name="paso">
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <p class="text-center alert alert-info">Eres el único usuario</p>
+    {% endif %}
+{% endblock %}
