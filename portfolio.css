@@ -62,7 +62,7 @@ body {
     color: #555;
   }
 
-  .project-info a {
+  .project-info a:not(.unstyled) {
     display: inline-block;
     margin-top: 10px;
     padding: 10px 20px;
@@ -73,7 +73,7 @@ body {
     transition: background-color 0.3s;
   }
 
-  .project-info a:hover {
+  .project-info a:not(.unstyled):hover {
     background-color: #005bb5;
   }
 
