@@ -1,0 +1,32 @@
+.title {
+    padding: 0.5%;
+    background-color: BurlyWood;
+    color: LightYellow;
+}
+
+.btn1  {
+    color: DarkBrown;
+    background-color: gold;
+    border: 1px solid grey;
+    display: inline-block;
+}
+
+.btn1:hover {
+    background-color: GoldenRod;
+}
+
+.index-nav {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.index-nav li {
+    display: inline-block;
+    padding: 0.5rem;
+}
+
+.index-nav li a {
+    text-decoration: none;
+    color: yellow;
+}
