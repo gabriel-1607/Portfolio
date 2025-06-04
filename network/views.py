@@ -1,14 +1,74 @@
+import json
+from django.http import JsonResponse
+from django import forms
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .models import User, Post
+
+class NewPostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ["content", "user"]
+        widgets = {
+            "content": forms.Textarea(attrs={
+                "class": "form-control",
+                "placeholder": "Write the contents of your post here"
+                }),
+            "user": forms.HiddenInput(),
+        }
+        labels = {
+            "content" : ""
+        }
 
 
 def index(request):
-    return render(request, "network/index.html")
+    if request.user.id:
+        form = NewPostForm(initial={"user": request.user.pk})
+    else:
+        form = None
+    return render(request, "network/index.html", {
+        "form": form
+    })
+
+
+def post_view(request):
+
+    # Creates an email when the request method is post
+    if request.method == "POST":
+
+        # Gets the data from the request
+        data = json.loads(request.body)
+
+        # Validates the data from the request and, on failure, returns custom message
+        if not data.get("content"):
+            return JsonResponse({
+                "is_error": True,
+                "message": "Empty posts are not valid"
+            }, status=400)
+        try:
+            user = User.objects.get(pk=int(data.get("user")))
+        except User.DoesNotExist:
+            return JsonResponse({
+                "is_error": True,
+                "message": "No user found with that ID"
+            }, status=400)
+        
+        # Saves the post in the database
+        Post(
+            content=data.get("content"),
+            user=user
+        ).save()
+
+        # Return success message
+        return JsonResponse({
+            "is_error": False,
+            "message": "Your post has been successfully saved"
+        }, status=201)
+
 
 
 def login_view(request):
