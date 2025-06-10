@@ -68,6 +68,12 @@ def post_view(request):
             "is_error": False,
             "message": "Your post has been successfully saved"
         }, status=201)
+    
+    # If the method of the request is GET, loads posts from the database
+    if request.method == "GET":
+        return JsonResponse(
+            [post.serialize() for post in Post.objects.all().order_by('-timestamp')]
+        , safe= False, status=200)
 
 
 

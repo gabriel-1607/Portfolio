@@ -1,6 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('#post-submit').addEventListener('click', post_compose);
+      load_posts();
 })
+
+async function load_posts() {
+      const response = await fetch('/post');
+      const posts = await response.json();
+
+      posts.forEach(post => {
+            const post_container = my_create_element(
+                  'div',
+                  document.querySelector('#posts_container_id'),
+                  null,
+                  ['border', 'border-3', 'mb-1', 'p-4', 'rounded-2'],
+                  `post_${post.id}`
+            );
+            my_create_element('h5', post_container, post.user);
+            my_create_element('div', post_container, post.content,
+                  ['mb-3']
+            );
+            my_create_element('p', post_container, document.querySelector('#my_svg').innerHTML + post.likes)
+            my_create_element('p', post_container, post.timestamp, ['fw-light']);
+      });   
+}
 
 async function post_compose(event) {
 
@@ -48,6 +70,22 @@ async function post_compose(event) {
       submit_button.disabled = false;
 
 }
+
+
+// Handles the creation of html elements
+function my_create_element(my_tag, append_origin, content, my_classes='', my_id='') {
+      const element = document.createElement(`${my_tag}`);
+      if (my_classes) {
+            element.classList.add(...my_classes);
+      }
+      if (my_id) {
+            element.id = my_id;
+      }
+      element.innerHTML = content;
+      append_origin.append(element);
+      return element;
+}
+
 
 // Handles the display of custom messages
 function display_message(is_error, message) {
