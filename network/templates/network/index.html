@@ -1,7 +1,22 @@
 {% extends "network/layout.html" %}
+{% load static %}
+
+
+{% block head %}
+<script>
+    const myurls = {
+        'profile': '{% url "profile" %}',
+        'post': '{% url "post" %}',
+        'follow': '{% url "follow" %}'
+    }
+</script>
+<script src="{% static 'network/network.js' %}"></script>
+{% endblock %}
 
 {% block body %}
-    <div id="posts_container_id"></div>
+    <div id="posts_container_id" class="d-none"></div>
+    <h3 id="users_container_title">Other users</h3>
+    <ul id="users_container_id" class="d-none list-group w-25"></ul>
     <div id="my_svg" style="display: none;">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" version="1.1" viewBox="0 0 116 106">
             <path d="M 58,17 C 52,7 42,0 30,0 C 13,0 0,13 0,30 C 0,63 18,68 58,106 C 98,68 116,63 116,30 C 116,13 103,0 86,0 C 74,0 64,7 58,17 z" fill="#ff0707"/>

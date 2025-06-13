@@ -34,7 +34,7 @@ def index(request):
         "form": form
     })
 
-
+# TODO: decorate routes with login required
 def post_view(request):
 
     # Creates an email when the request method is post
@@ -72,8 +72,49 @@ def post_view(request):
     # If the method of the request is GET, loads posts from the database
     if request.method == "GET":
         return JsonResponse(
-            [post.serialize() for post in Post.objects.all().order_by('-timestamp')]
-        , safe= False, status=200)
+            {"posts": [post.serialize() for post in Post.objects.all().order_by('-timestamp')]},
+        status=200)
+
+
+def profile_view(request):
+    # TODO: Properly validate the request method for the other routes and improve this one + validate client side
+    if request.method != "GET":
+        return JsonResponse(
+            {
+                "error" : "Only get method is allowed"
+            },
+        status=400)
+    
+    # TODO: Modify the serialize function for users to identify wether they are following the user and wether the user is following them
+    return JsonResponse(
+        {
+            "followers_number": User.objects.filter(following=request.user).count(),
+            "following_number": User.objects.get(pk=request.user.id).following.count(),
+            "posts": [post.serialize() for post in Post.objects.filter(user=request.user).order_by('-timestamp')],
+            "users": [user.serialize(request.user) for user in User.objects.exclude(pk=request.user.id)]
+        },
+    status=200)
+
+
+def follow_view(request):
+    if request.method != "PUT":
+        return JsonResponse(
+            {
+                "error" : "Only put method is allowed"
+            },
+        status=400)
+    
+    data = json.loads(request.body)
+    logged_user = User.objects.get(pk=request.user.id)
+    followed_user = User.objects.get(pk=data.get("user_id"))
+    if data.get("start_following"):
+        logged_user.following.add(followed_user)
+    else:
+        logged_user.following.remove(followed_user)
+
+    return JsonResponse({
+        "message": "The follow status was successfully updated"
+    }, status=200)
 
 
 
