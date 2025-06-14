@@ -2,9 +2,10 @@
 
 document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('#profile_button').addEventListener('click', load_profile);
-      document.querySelector('#all_posts_button').addEventListener('click', load_posts);
+      document.querySelector('#all_posts_button').addEventListener('click', () => {load_posts(myurls.post)});
       document.querySelector('#post-submit').addEventListener('click', post_compose);
-      load_posts();
+      document.querySelector('#following_button').addEventListener('click', () => {load_posts(myurls.following)});
+      load_posts(myurls.post);
 })
 
 
@@ -38,7 +39,7 @@ async function load_profile() {
 
 
 // Gets posts from the database via a get request
-async function load_posts() {
+async function load_posts(url) {
 
       const all_posts_container = document.querySelector('#posts_container_id');
 
@@ -49,7 +50,7 @@ async function load_posts() {
 
       all_posts_container.innerHTML = '';
 
-      const response = await fetch(myurls.post);
+      const response = await fetch(url);
       const json_response = await response.json();
 
       display_posts(json_response.posts);
@@ -220,6 +221,8 @@ function display_message(is_error, message) {
       message_element.classList.remove('d-none');
 }
 
+
+// Capitalizes a string
 function capitalize_string(mystring) {
       return mystring.charAt(0).toUpperCase() + mystring.slice(1)
 }

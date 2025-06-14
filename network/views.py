@@ -37,6 +37,7 @@ def index(request):
 # TODO: decorate routes with login required
 def post_view(request):
 
+    # TODO: Use Django's validation form.is_valid()
     # Creates an email when the request method is post
     if request.method == "POST":
 
@@ -116,6 +117,18 @@ def follow_view(request):
         "message": "The follow status was successfully updated"
     }, status=200)
 
+
+def following_view(request):
+    if request.method != "GET":
+        return JsonResponse(
+            {
+                "error" : "Only get method is allowed"
+            },
+        status=400)
+    followed_users = User.objects.get(pk=request.user.id).following.all()
+    return JsonResponse(
+        {"posts": [post.serialize() for post in Post.objects.filter(user__in=followed_users).order_by('-timestamp')]},
+    status=200)
 
 
 def login_view(request):
