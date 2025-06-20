@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 import json
 from django.http import JsonResponse
 from django import forms
@@ -72,8 +73,19 @@ def post_view(request):
     
     # If the method of the request is GET, loads posts from the database
     if request.method == "GET":
+
+        if request.GET.get("p"):
+            page = int(request.GET.get("p"))
+        else:
+            page = 1
+
+        posts = Paginator(Post.objects.all().order_by('-timestamp'), 10)
         return JsonResponse(
-            {"posts": [post.serialize() for post in Post.objects.all().order_by('-timestamp')]},
+            # Sends posts to the client
+            {
+                "posts": [post.serialize() for post in posts.get_page(page)],
+                "max_page": posts.num_pages
+            },
         status=200)
 
 
@@ -86,12 +98,19 @@ def profile_view(request):
             },
         status=400)
     
-    # TODO: Modify the serialize function for users to identify wether they are following the user and wether the user is following them
+    if request.GET.get("p"):
+        page = int(request.GET.get("p"))
+    else:
+        page = 1
+
+    posts = Paginator(Post.objects.filter(user=request.user).order_by('-timestamp'), 10)
     return JsonResponse(
         {
             "followers_number": User.objects.filter(following=request.user).count(),
             "following_number": User.objects.get(pk=request.user.id).following.count(),
-            "posts": [post.serialize() for post in Post.objects.filter(user=request.user).order_by('-timestamp')],
+            # Sends posts to the client
+            "posts": [post.serialize() for post in posts.get_page(page)],
+            "max_page": posts.num_pages,
             "users": [user.serialize(request.user) for user in User.objects.exclude(pk=request.user.id)]
         },
     status=200)
@@ -125,9 +144,20 @@ def following_view(request):
                 "error" : "Only get method is allowed"
             },
         status=400)
+    
+    if request.GET.get("p"):
+        page = int(request.GET.get("p"))
+    else:
+        page = 1
+
     followed_users = User.objects.get(pk=request.user.id).following.all()
+    posts = Paginator(Post.objects.filter(user__in=followed_users).order_by('-timestamp'), 10)
     return JsonResponse(
-        {"posts": [post.serialize() for post in Post.objects.filter(user__in=followed_users).order_by('-timestamp')]},
+        # Sends posts to the client
+        {
+            "posts": [post.serialize() for post in posts.get_page(page)],
+            "max_page": posts.num_pages
+        },
     status=200)
 
 

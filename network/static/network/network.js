@@ -1,12 +1,47 @@
 // Global variable 'myurls' is defined in index.html
+// TODO: The paginator.current_page variable should be updated to 1 on every function that loads posts
+let paginator = {
+      current_page: 1,
+      max_page: 1,
+      url: ''
+};
 
 document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('#profile_button').addEventListener('click', load_profile);
       document.querySelector('#all_posts_button').addEventListener('click', () => {load_posts(myurls.post)});
       document.querySelector('#post-submit').addEventListener('click', post_compose);
       document.querySelector('#following_button').addEventListener('click', () => {load_posts(myurls.following)});
+      document.querySelectorAll('#paginator_button').forEach(button => {
+            // TODO: probably all the lines of code within the event listener should be placed in a separate function outside of DOMContentLoaded for code styling purposes
+            button.addEventListener('click', async () => {
+                  const direction = button.getAttribute('data-direction');
+                  console.log(paginator)
+                  if (direction == "previous" && paginator.current_page > 1) {
+                        paginator.current_page--;
+                  }
+                  else if (direction == "next" && paginator.current_page < paginator.max_page) {
+                        paginator.current_page++;
+                  }
+                  else {
+                        display_message(true, "Post paginator tried to use the wrong pages")
+                  }
+                  
+                  // TODO: Handle the current type of url for loading the appropiate type of posts, it should be set on the functions that load posts
+                  const url = paginator.url + '?p=' + paginator.current_page
+
+                  const response = await fetch(url);
+                  const json_response = await response.json();
+
+                  const all_posts_container = document.querySelector('#posts_container_id');
+                  all_posts_container.classList.add('d-none');
+                  all_posts_container.innerHTML = '';
+                  display_posts(json_response.posts);
+                  all_posts_container.classList.remove('d-none');
+
+            });
+      });
       load_posts(myurls.post);
-})
+});
 
 
 
@@ -35,6 +70,10 @@ async function load_profile() {
       all_posts_container.classList.remove('d-none');
       all_users_container.classList.remove('d-none');
       users_title.classList.remove('d-none');
+
+      paginator.url = myurls.profile;
+      paginator.max_page = json_response.max_page
+      paginator.current_page = 1;
 }
 
 
@@ -44,6 +83,13 @@ async function load_posts(url) {
       const all_posts_container = document.querySelector('#posts_container_id');
 
       all_posts_container.classList.add('d-none');
+      /*
+      TODO: to make unnecessary the separate function that does pagination and loads posts,
+      the following two lines of code should be present directly in the event listener where this function is being called,
+      and the paginator.url should also be updated in those event listeners instead of within this function.
+
+      TODO: Maybe the proposition at the top won't work without considering also pagintor.current_page. It may break
+      */
       document.querySelector('#users_container_id').classList.add('d-none');
       document.querySelector('#users_container_title').classList.add('d-none');
 
@@ -56,6 +102,10 @@ async function load_posts(url) {
       display_posts(json_response.posts);
 
       all_posts_container.classList.remove('d-none');
+
+      paginator.url = url;
+      paginator.max_page = json_response.max_page
+      paginator.current_page = 1;
 }
 
 
@@ -109,6 +159,8 @@ async function post_compose(event) {
 }
 
 
+// TODO: probably the hiding, emptying and redisplaying of the all_posts_container should be done within this function
+// Since it is already being done arount it in the other functions
 function display_posts(posts) {
 
       posts.forEach(post => {
