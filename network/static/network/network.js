@@ -2,9 +2,9 @@
 
 document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('#profile_button').addEventListener('click', load_profile);
-      document.querySelector('#all_posts_button').addEventListener('click', () => {load_posts(myurls.post)});
+      document.querySelector('#all_posts_button').addEventListener('click', () => {hide_users(); load_posts(myurls.post);});
       document.querySelector('#post-submit').addEventListener('click', post_compose);
-      document.querySelector('#following_button').addEventListener('click', () => {load_posts(myurls.following)});
+      document.querySelector('#following_button').addEventListener('click', () => {hide_users(); load_posts(myurls.following);});
       load_posts(myurls.post);
 })
 
@@ -14,47 +14,21 @@ document.addEventListener('DOMContentLoaded', () => {
 // plus a list of all the other users, with a button to toggle their followed or not followed status
 async function load_profile() {
 
-      const all_posts_container = document.querySelector('#posts_container_id');
-      const users_title = document.querySelector('#users_container_title');
-      const all_users_container = document.querySelector('#users_container_id');
-
       const response = await fetch(myurls.profile);
       const json_response = await response.json();
 
-      all_posts_container.classList.add('d-none');
-      all_users_container.classList.add('d-none');
-      users_title.classList.add('d-none');
-      all_users_container.innerHTML = '';
-      all_posts_container.innerHTML = '';
-
       display_posts(json_response.posts);
       display_users(json_response);
-      
-      all_posts_container.classList.remove('d-none');
-      all_users_container.classList.remove('d-none');
-      users_title.classList.remove('d-none');
 }
 
 
 // Gets posts from the database via a get request
 async function load_posts(url) {
 
-      const all_posts_container = document.querySelector('#posts_container_id');
-
-      
-      document.querySelector('#users_container_id').classList.add('d-none');
-      document.querySelector('#users_container_title').classList.add('d-none');
-
-
-
       const response = await fetch(url);
       const json_response = await response.json();
 
-
-      all_posts_container.classList.add('d-none');
-      all_posts_container.innerHTML = '';
       display_posts(json_response.posts);
-      all_posts_container.classList.remove('d-none');
 }
 
 
@@ -110,11 +84,15 @@ async function post_compose(event) {
 
 function display_posts(posts) {
 
+      const all_posts_container = document.querySelector('#posts_container_id');
+      all_posts_container.classList.add('d-none');
+      all_posts_container.innerHTML = '';
+
       posts.forEach(post => {
             // TODO : probably the specific id is unnecessary and I should replace it with null
             const post_container = my_create_element(
                   'div',
-                  document.querySelector('#posts_container_id'),
+                  all_posts_container,
                   null,
                   ['border', 'border-3', 'mb-1', 'p-4', 'rounded-2'],
                   `post_${post.id}`
@@ -127,12 +105,18 @@ function display_posts(posts) {
             my_create_element('p', post_container, post.timestamp, ['fw-light']);
       });
 
+      all_posts_container.classList.remove('d-none');
+
 }
 
 
 function display_users(json_response) {
 
+      const users_title = document.querySelector('#users_container_title');
       const all_users_container = document.querySelector('#users_container_id');
+      all_users_container.classList.add('d-none');
+      users_title.classList.add('d-none');
+      all_users_container.innerHTML = '';
 
       my_create_element('p', all_users_container, 'Currently following ' + json_response.following_number + ' users.')
       my_create_element('p', all_users_container, 'Currently followed by ' + json_response.followers_number + ' users.')
@@ -143,15 +127,15 @@ function display_users(json_response) {
                   null,
                   ['list-group-item', 'd-flex', 'align-items-center', 'justify-content-evenly'],       
                   'user_container_id'
-            )
-            my_create_element('span', user_container, capitalize_string(user.username))
+            );
+            my_create_element('span', user_container, capitalize_string(user.username));
 
             let mystring = 'Follow';
             if (user.is_followed) {
                   mystring = 'Unfollow';
             }
 
-            const follow_button = my_create_element('button', user_container, mystring, ['btn', 'btn-primary'])
+            const follow_button = my_create_element('button', user_container, mystring, ['btn', 'btn-primary']);
             follow_button.addEventListener('click', async () => {
 
                   if (user.is_followed) {
@@ -161,9 +145,6 @@ function display_users(json_response) {
                         user.is_followed = true;
                         json_response.following_number++;
                   }
-
-                  all_users_container.classList.add('d-none');
-                  all_users_container.innerHTML = '';
 
                   await fetch(myurls.follow, {
                         method: 'PUT',
@@ -178,9 +159,16 @@ function display_users(json_response) {
 
                   display_users(json_response);
 
-                  all_users_container.classList.remove('d-none');
-            })
-      })
+            });
+      });
+
+      all_users_container.classList.remove('d-none');
+      users_title.classList.remove('d-none');
+}
+
+function hide_users() {
+      document.querySelector('#users_container_id').classList.add('d-none');
+      document.querySelector('#users_container_title').classList.add('d-none');
 }
 
 
