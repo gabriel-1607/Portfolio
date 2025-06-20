@@ -18,20 +18,18 @@ async function load_profile() {
       const users_title = document.querySelector('#users_container_title');
       const all_users_container = document.querySelector('#users_container_id');
 
+      const response = await fetch(myurls.profile);
+      const json_response = await response.json();
+
       all_posts_container.classList.add('d-none');
       all_users_container.classList.add('d-none');
       users_title.classList.add('d-none');
       all_users_container.innerHTML = '';
       all_posts_container.innerHTML = '';
 
-      const response = await fetch(myurls.profile);
-      const json_response = await response.json();
-
       display_posts(json_response.posts);
-      
-      // TODO, update the number of followers and followed people too.
       display_users(json_response);
-
+      
       all_posts_container.classList.remove('d-none');
       all_users_container.classList.remove('d-none');
       users_title.classList.remove('d-none');
@@ -43,18 +41,19 @@ async function load_posts(url) {
 
       const all_posts_container = document.querySelector('#posts_container_id');
 
-      all_posts_container.classList.add('d-none');
+      
       document.querySelector('#users_container_id').classList.add('d-none');
       document.querySelector('#users_container_title').classList.add('d-none');
 
 
-      all_posts_container.innerHTML = '';
 
       const response = await fetch(url);
       const json_response = await response.json();
 
-      display_posts(json_response.posts);
 
+      all_posts_container.classList.add('d-none');
+      all_posts_container.innerHTML = '';
+      display_posts(json_response.posts);
       all_posts_container.classList.remove('d-none');
 }
 
