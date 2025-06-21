@@ -1,5 +1,4 @@
 // Global variable 'myurls' is defined in index.html
-// TODO: The paginator.current_page variable should be updated to 1 on every function that loads posts
 let paginator = {
       current_page: 1,
       max_page: 1,
@@ -8,33 +7,11 @@ let paginator = {
 
 document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('#profile_button').addEventListener('click', load_profile);
-      document.querySelector('#all_posts_button').addEventListener('click', () => {hide_users(); load_posts(myurls.post);});
+      document.querySelector('#all_posts_button').addEventListener('click', () => {load_posts(myurls.post, undefined, true);});
       document.querySelector('#post-submit').addEventListener('click', post_compose);
-      document.querySelector('#following_button').addEventListener('click', () => {hide_users(); load_posts(myurls.following);});
+      document.querySelector('#following_button').addEventListener('click', () => {load_posts(myurls.following, undefined, true);});
       document.querySelectorAll('#paginator_button').forEach(button => {
-            // TODO: probably all the lines of code within the event listener should be placed in a separate function outside of DOMContentLoaded for code styling purposes
-            button.addEventListener('click', async () => {
-                  const direction = button.getAttribute('data-direction');
-                  console.log(paginator)
-                  if (direction == "previous" && paginator.current_page > 1) {
-                        paginator.current_page--;
-                  }
-                  else if (direction == "next" && paginator.current_page < paginator.max_page) {
-                        paginator.current_page++;
-                  }
-                  else {
-                        display_message(true, "Post paginator tried to use the wrong pages")
-                  }
-                  
-                  // TODO: Handle the current type of url for loading the appropiate type of posts, it should be set on the functions that load posts
-                  const url = paginator.url + '?p=' + paginator.current_page
-
-                  const response = await fetch(url);
-                  const json_response = await response.json();
-
-                  display_posts(json_response.posts);
-
-            });
+            button.addEventListener('click', () => {paginator_page(button.getAttribute('data-direction'));});
       });
       load_posts(myurls.post);
 });
@@ -50,30 +27,38 @@ async function load_profile() {
 
       display_posts(json_response.posts);
       display_users(json_response);
-
-      paginator.url = myurls.profile;
-      paginator.max_page = json_response.max_page
-      paginator.current_page = 1;
+      reset_paginator(json_response.max_page, myurls.profile);
 }
 
 
 // Gets posts from the database via a get request
-async function load_posts(url) {
-      /*
-      TODO: to make unnecessary the separate function that does pagination and loads posts,
-      the following two lines of code should be present directly in the event listener where this function is being called,
-      and the paginator.url should also be updated in those event listeners instead of within this function.
+async function load_posts(url, paginating=false, hide_users=false) {
 
-      TODO: Maybe the proposition at the top won't work without considering also pagintor.current_page. It may break
-      */
+      if (hide_users) {
+            document.querySelector('#users_container_id').classList.add('d-none');
+            document.querySelector('#users_container_title').classList.add('d-none');
+      }
+
       const response = await fetch(url);
       const json_response = await response.json();
 
       display_posts(json_response.posts);
 
-      paginator.url = url;
-      paginator.max_page = json_response.max_page
-      paginator.current_page = 1;
+      if (paginating) {
+            reset_paginator(json_response.max_page)
+      } else {
+            reset_paginator(json_response.max_page, url)
+      }
+}
+
+function paginator_page(direction) {
+      if (direction == "previous" && paginator.current_page > 1) {
+            paginator.current_page--;
+      }
+      else if (direction == "next" && paginator.current_page < paginator.max_page) {
+            paginator.current_page++;
+      }
+      load_posts(paginator.url + '?p=' + paginator.current_page, true);
 }
 
 
@@ -127,8 +112,6 @@ async function post_compose(event) {
 }
 
 
-// TODO: probably the hiding, emptying and redisplaying of the all_posts_container should be done within this function
-// Since it is already being done arount it in the other functions
 function display_posts(posts) {
 
       const all_posts_container = document.querySelector('#posts_container_id');
@@ -213,9 +196,13 @@ function display_users(json_response) {
       users_title.classList.remove('d-none');
 }
 
-function hide_users() {
-      document.querySelector('#users_container_id').classList.add('d-none');
-      document.querySelector('#users_container_title').classList.add('d-none');
+
+function reset_paginator(max_page, url="") {
+      paginator.max_page = max_page;
+      paginator.current_page = 1;
+      if (url) {
+            paginator.url = url;
+      }
 }
 
 
