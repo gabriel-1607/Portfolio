@@ -155,6 +155,24 @@ def follow_view(request):
         "message": "The follow status was successfully updated"
     }, status=200)
 
+def like_view(request):
+    if request.method != "PUT":
+        return JsonResponse(
+            {
+                "error" : "Only put method is allowed"
+            },
+        status=400)
+    data = json.loads(request.body)
+    post = Post.objects.get(pk=int(data.get("post_id")))
+    if post.likedby.filter(id=request.user.id).exists():
+        post.likedby.remove(request.user)
+    else:
+        post.likedby.add(request.user)
+    post.save()
+    return JsonResponse({
+        "likes": post.likedby.count()
+    }, status=200)
+
 
 def following_view(request):
     if request.method != "GET":

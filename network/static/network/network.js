@@ -150,7 +150,23 @@ function display_posts(posts) {
             );
             my_create_element('h5', post_container, post.user);
             my_create_element('div', post_container, post.content, ['mb-3']);
-            my_create_element('p', post_container, document.querySelector('#my_svg').innerHTML + post.likes);
+            const like_section = my_create_element('p', post_container, "", ['d-flex', 'align-items-center']);
+            const post_likes = my_create_element('span', like_section, post.likes);
+            const like_button = my_create_element('button', like_section, document.querySelector('#my_svg').innerHTML, ['btn', 'btn-link', 'pb-2'], 'like_button');
+            like_button.setAttribute('data-post-id', `${post.id}`);
+            like_button.addEventListener('click', async () => {
+                  const response = await fetch(myurls.like, {
+                        method: 'PUT',
+                        headers: {
+                              'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+                        },
+                        body: JSON.stringify({
+                              post_id: post.id
+                        })
+                  });
+                  const json_response = await response.json();
+                  post_likes.innerHTML = json_response.likes;
+            });
             my_create_element('p', post_container, post.timestamp, ['fw-light']);
             const edit_button = my_create_element('button', post_container, "Edit", ['btn', 'btn-outline-dark', 'btn-sm']);
             edit_button.setAttribute('data-bs-toggle', 'modal');
