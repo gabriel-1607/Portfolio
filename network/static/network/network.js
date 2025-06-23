@@ -1,4 +1,5 @@
 // Global variable 'myurls' is defined in index.html
+let post_id;
 let paginator = {
       current_page: 1,
       max_page: 1,
@@ -6,33 +7,26 @@ let paginator = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-      document.querySelector('#profile_button').addEventListener('click', load_profile);
+      document.querySelector('#profile_button').addEventListener('click', () => {load_posts(myurls.profile, undefined, undefined, true);});
       document.querySelector('#all_posts_button').addEventListener('click', () => {load_posts(myurls.post, undefined, true);});
-      document.querySelector('#post-submit').addEventListener('click', post_compose);
+      document.querySelector('#post_submit').addEventListener('click', post_compose);
       document.querySelector('#following_button').addEventListener('click', () => {load_posts(myurls.following, undefined, true);});
+      document.querySelector('#save_changes').addEventListener('click', edit_post);
       document.querySelectorAll('#paginator_button').forEach(button => {
             button.addEventListener('click', () => {paginator_page(button.getAttribute('data-direction'));});
+      });
+      document.querySelector('#my-modal').addEventListener('hidden.bs.modal', () => {
+            document.querySelector('#id_content').value = '';
+            document.querySelector('#my-modal-title').innerHTML = 'Your new post';
+            document.querySelector('#save_changes').classList.add('d-none');
       });
       load_posts(myurls.post);
 });
 
 
 
-// Loads and displays info about the user: the posts, the number of followers and of users followed,
-// plus a list of all the other users, with a button to toggle their followed or not followed status
-async function load_profile() {
-
-      const response = await fetch(myurls.profile);
-      const json_response = await response.json();
-
-      display_posts(json_response.posts);
-      display_users(json_response);
-      reset_paginator(json_response.max_page, myurls.profile);
-}
-
-
 // Gets posts from the database via a get request
-async function load_posts(url, paginating=false, hide_users=false) {
+async function load_posts(url, paginating=false, hide_users=false, profile=false) {
 
       if (hide_users) {
             document.querySelector('#users_container_id').classList.add('d-none');
@@ -44,12 +38,17 @@ async function load_posts(url, paginating=false, hide_users=false) {
 
       display_posts(json_response.posts);
 
+      if (profile) {
+            display_users(json_response);
+      }
+
       if (paginating) {
-            reset_paginator(json_response.max_page)
+            reset_paginator(json_response.max_page);
       } else {
-            reset_paginator(json_response.max_page, url)
+            reset_paginator(json_response.max_page, url);
       }
 }
+
 
 function paginator_page(direction) {
       if (direction == "previous" && paginator.current_page > 1) {
@@ -78,7 +77,7 @@ async function post_compose(event) {
       document.querySelector('#id_content').value = "";
 
       // Disables the submit button while the fetch request is in process
-      submit_button = document.querySelector('#post-submit');
+      submit_button = document.querySelector('#post_submit');
       submit_button.disabled = true;
 
       try {
@@ -89,8 +88,7 @@ async function post_compose(event) {
                         'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
                   },
                   body: JSON.stringify({
-                        content: content,
-                        user: document.querySelector('#id_user').value
+                        content: content
                   })
             });
             // Turns the server response into a json object
@@ -112,6 +110,29 @@ async function post_compose(event) {
 }
 
 
+// TODO: Need the post_id to be able to target the post to be edited in the database
+async function edit_post() {
+      const content = document.querySelector('#id_content').value;
+      const response = await fetch(myurls.edit, {
+            method: 'PUT',
+            headers: {
+                  'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+            },
+            body: JSON.stringify({
+                  content: content,
+                  id: post_id
+            })
+      });
+      const json_response = await response.json();
+
+      if (!json_response.is_error) {
+            load_posts(paginator.url + '?p=' + paginator.current_page, true);
+      }
+      display_message(json_response.is_error, json_response.message);
+}
+
+
+// TODO: Linebreaks should be properly displayed in the posts
 function display_posts(posts) {
 
       const all_posts_container = document.querySelector('#posts_container_id');
@@ -128,11 +149,18 @@ function display_posts(posts) {
                   `post_${post.id}`
             );
             my_create_element('h5', post_container, post.user);
-            my_create_element('div', post_container, post.content,
-                  ['mb-3']
-            );
-            my_create_element('p', post_container, document.querySelector('#my_svg').innerHTML + post.likes)
+            my_create_element('div', post_container, post.content, ['mb-3']);
+            my_create_element('p', post_container, document.querySelector('#my_svg').innerHTML + post.likes);
             my_create_element('p', post_container, post.timestamp, ['fw-light']);
+            const edit_button = my_create_element('button', post_container, "Edit", ['btn', 'btn-outline-dark', 'btn-sm']);
+            edit_button.setAttribute('data-bs-toggle', 'modal');
+            edit_button.setAttribute('data-bs-target', '#my-modal');
+            edit_button.addEventListener('click', () => {
+                  document.querySelector('#my-modal-title').innerHTML = 'Post editor';
+                  document.querySelector('#id_content').value = post.content;
+                  document.querySelector('#save_changes').classList.remove('d-none');
+                  post_id = post.id;
+            });
       });
 
       all_posts_container.classList.remove('d-none');
@@ -221,6 +249,7 @@ function my_create_element(my_tag, append_origin, content, my_classes='', my_id=
 }
 
 
+// TODO: Switch to BS toasts and erase the div currently being used for message display
 // Handles the display of custom messages
 function display_message(is_error, message) {
 

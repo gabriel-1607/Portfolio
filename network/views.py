@@ -10,16 +10,16 @@ from django.urls import reverse
 
 from .models import User, Post
 
+# TODO: Specifying the user is unnecessary, requestuser.id is enough: change here, in the view function, in the js.
 class NewPostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ["content", "user"]
+        fields = ["content"]
         widgets = {
             "content": forms.Textarea(attrs={
                 "class": "form-control",
                 "placeholder": "Write the contents of your post here"
-                }),
-            "user": forms.HiddenInput(),
+                })
         }
         labels = {
             "content" : ""
@@ -28,7 +28,7 @@ class NewPostForm(forms.ModelForm):
 
 def index(request):
     if request.user.id:
-        form = NewPostForm(initial={"user": request.user.pk})
+        form = NewPostForm(initial={"id": 1})
     else:
         form = None
     return render(request, "network/index.html", {
@@ -52,7 +52,7 @@ def post_view(request):
                 "message": "Empty posts are not valid"
             }, status=400)
         try:
-            user = User.objects.get(pk=int(data.get("user")))
+            user = User.objects.get(pk=int(request.user.id))
         except User.DoesNotExist:
             return JsonResponse({
                 "is_error": True,
@@ -65,7 +65,7 @@ def post_view(request):
             user=user
         ).save()
 
-        # Return success message
+        # Returns success message
         return JsonResponse({
             "is_error": False,
             "message": "Your post has been successfully saved"
@@ -87,6 +87,25 @@ def post_view(request):
                 "max_page": posts.num_pages
             },
         status=200)
+
+
+def edit_view(request):
+    if request.method == "PUT":
+        data = json.loads(request.body)
+        mypost = Post.objects.get(pk=int(data.get("id")))
+
+        # Validates that it is the author of the post that is trying to edit it
+        if mypost.user != request.user:
+            return JsonResponse({
+                "is_error": True,
+                "message": "Only the author of the post is allowed to edit the post"
+            })
+        mypost.content = data.get("content")
+        mypost.save()
+        return JsonResponse({
+            "is_error": False,
+            "message": "Your post has been successfully edited"
+        }, status=200)
 
 
 def profile_view(request):
