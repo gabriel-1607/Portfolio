@@ -61,7 +61,6 @@ function paginator_page(direction) {
 }
 
 
-// TODO: load the posts again after saving a new post.
 // Saves a post to the database via a post request
 async function post_compose(event) {
 
@@ -103,6 +102,7 @@ async function post_compose(event) {
 
       // Displays custom message from the server
       display_message(response.is_error, response.message);
+      load_posts(paginator.url + '?p=' + paginator.current_page, true);
 
       // Re-enables the submit button
       submit_button.disabled = false;
@@ -110,7 +110,6 @@ async function post_compose(event) {
 }
 
 
-// TODO: Need the post_id to be able to target the post to be edited in the database
 async function edit_post() {
       const content = document.querySelector('#id_content').value;
       const response = await fetch(myurls.edit, {
@@ -132,7 +131,6 @@ async function edit_post() {
 }
 
 
-// TODO: Linebreaks should be properly displayed in the posts
 function display_posts(posts) {
 
       const all_posts_container = document.querySelector('#posts_container_id');
@@ -140,20 +138,19 @@ function display_posts(posts) {
       all_posts_container.innerHTML = '';
 
       posts.forEach(post => {
-            // TODO : probably the specific id is unnecessary and I should replace it with null
             const post_container = my_create_element(
                   'div',
                   all_posts_container,
                   null,
-                  ['border', 'border-3', 'mb-1', 'p-4', 'rounded-2'],
-                  `post_${post.id}`
+                  ['border', 'border-3', 'mb-1', 'p-4', 'rounded-2']
             );
+            let post_content = post.content.replace(/^(.+)$/gm, '<p>$1</p>');
+            post_content = post_content.replace(/^\n?$/gm, '<br>');
             my_create_element('h5', post_container, post.user);
-            my_create_element('div', post_container, post.content, ['mb-3']);
+            my_create_element('div', post_container, post_content, ['mb-3']);
             const like_section = my_create_element('p', post_container, "", ['d-flex', 'align-items-center']);
             const post_likes = my_create_element('span', like_section, post.likes);
             const like_button = my_create_element('button', like_section, document.querySelector('#my_svg').innerHTML, ['btn', 'btn-link', 'pb-2'], 'like_button');
-            like_button.setAttribute('data-post-id', `${post.id}`);
             like_button.addEventListener('click', async () => {
                   const response = await fetch(myurls.like, {
                         method: 'PUT',
@@ -181,6 +178,11 @@ function display_posts(posts) {
 
       all_posts_container.classList.remove('d-none');
 
+      if (document.documentElement.scrollHeight > window.innerHeight) {
+            document.querySelector('#lower-page-navigation').classList.remove('d-none')
+      } else {
+            document.querySelector('#lower-page-navigation').classList.add('d-none')
+      }
 }
 
 

@@ -2,6 +2,7 @@ from django.core.paginator import Paginator
 import json
 from django.http import JsonResponse
 from django import forms
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -10,7 +11,6 @@ from django.urls import reverse
 
 from .models import User, Post
 
-# TODO: Specifying the user is unnecessary, requestuser.id is enough: change here, in the view function, in the js.
 class NewPostForm(forms.ModelForm):
     class Meta:
         model = Post
@@ -35,33 +35,34 @@ def index(request):
         "form": form
     })
 
-# TODO: decorate routes with login required
+
 def post_view(request):
 
-    # TODO: Use Django's validation form.is_valid()
     # Creates an email when the request method is post
-    if request.method == "POST":
+    if request.method == "POST" and request.user.is_authenticated:
 
         # Gets the data from the request
         data = json.loads(request.body)
 
         # Validates the data from the request and, on failure, returns custom message
-        if not data.get("content"):
+        form = NewPostForm(data)
+        if not form.is_valid():
             return JsonResponse({
                 "is_error": True,
-                "message": "Empty posts are not valid"
+                "message": form.errors
             }, status=400)
+
         try:
             user = User.objects.get(pk=int(request.user.id))
         except User.DoesNotExist:
             return JsonResponse({
                 "is_error": True,
-                "message": "No user found with that ID"
+                "message": "No user found as author of the post"
             }, status=400)
         
         # Saves the post in the database
         Post(
-            content=data.get("content"),
+            content=form.cleaned_data["content"],
             user=user
         ).save()
 
@@ -89,6 +90,7 @@ def post_view(request):
         status=200)
 
 
+@login_required
 def edit_view(request):
     if request.method == "PUT":
         data = json.loads(request.body)
@@ -100,6 +102,7 @@ def edit_view(request):
                 "is_error": True,
                 "message": "Only the author of the post is allowed to edit the post"
             })
+        
         mypost.content = data.get("content")
         mypost.save()
         return JsonResponse({
@@ -108,8 +111,8 @@ def edit_view(request):
         }, status=200)
 
 
+@login_required
 def profile_view(request):
-    # TODO: Properly validate the request method for the other routes and improve this one + validate client side
     if request.method != "GET":
         return JsonResponse(
             {
@@ -135,6 +138,7 @@ def profile_view(request):
     status=200)
 
 
+@login_required
 def follow_view(request):
     if request.method != "PUT":
         return JsonResponse(
@@ -155,6 +159,8 @@ def follow_view(request):
         "message": "The follow status was successfully updated"
     }, status=200)
 
+
+@login_required
 def like_view(request):
     if request.method != "PUT":
         return JsonResponse(
@@ -174,6 +180,7 @@ def like_view(request):
     }, status=200)
 
 
+@login_required
 def following_view(request):
     if request.method != "GET":
         return JsonResponse(

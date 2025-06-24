@@ -3,17 +3,24 @@
 
 
 {% block head %}
-<script>
-    const myurls = {
-        profile: '{% url "profile" %}',
-        post: '{% url "post" %}',
-        follow: '{% url "follow" %}',
-        following: '{% url "following" %}',
-        edit: '{% url "edit" %}',
-        like: '{% url "like" %}'
-    }
-</script>
-<script src="{% static 'network/network.js' %}"></script>
+    {% if user.is_authenticated %}
+        <script>
+            const myurls = {
+                profile: '{% url "profile" %}',
+                post: '{% url "post" %}',
+                follow: '{% url "follow" %}',
+                following: '{% url "following" %}',
+                edit: '{% url "edit" %}',
+                like: '{% url "like" %}'
+            }
+        </script>
+        <script src="{% static 'network/network.js' %}"></script>
+    {% else %}
+        <script>
+            const myurls = {post: '{% url "post" %}'};
+        </script>
+        <script src="{% static 'network/allposts.js' %}"></script>
+    {% endif %}
 {% endblock %}
 
 {% block body %}
@@ -26,7 +33,7 @@
 
     <div id="posts_container_id" class="d-none mb-3"></div>
 
-    <nav aria-label="Page navigation">
+    <nav aria-label="Page navigation" class="d-none" id="lower-page-navigation">
         <ul class="pagination">
             <li class="page-item"><button id="paginator_button" data-direction="previous" class="page-link">Previous</button></li>
             <li class="page-item"><button id="paginator_button" data-direction="next" class="page-link">Next</button></li>
