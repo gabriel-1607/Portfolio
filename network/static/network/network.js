@@ -45,10 +45,16 @@ async function load_posts(url, paginating=false, hide_users=false, profile=false
             document.querySelector('#users_container_title').classList.add('d-none');
       }
 
-      // Makes a fetch request to the server
-      const response = await fetch(url);
-      // Jsonifies the response
-      const json_response = await response.json();
+      let json_response;
+      try {
+            // Makes a fetch request to the server
+            const response = await fetch(url);
+            // Jsonifies the response
+            json_response = await response.json();
+      } catch {
+            display_message(true, "Failed to properly get the posts from the server");
+            return;
+      }
 
       // Render posts in the DOM
       display_posts(json_response.posts);
@@ -139,20 +145,26 @@ async function edit_post() {
       // Finds the post's content edited by the user
       const content = document.querySelector('#id_content').value;
 
-      // Makes a PUT request to update the post in the database
-      const response = await fetch(myurls.edit, {
-            method: 'PUT',
-            headers: {
-                  'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
-            },
-            body: JSON.stringify({
-                  content: content,
-                  id: post_id
-            })
-      });
+      let json_response;
+      try {
+            // Makes a PUT request to update the post in the database
+            const response = await fetch(myurls.edit, {
+                  method: 'PUT',
+                  headers: {
+                        'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+                  },
+                  body: JSON.stringify({
+                        content: content,
+                        id: post_id
+                  })
+            });
 
-      // Jsonifies the response from the server
-      const json_response = await response.json();
+            // Jsonifies the response from the server
+            json_response = await response.json();
+      } catch {
+            display_message(true, "Failed to update the post in the server");
+            return;
+      }
 
       // If there has not been an error, load the same page of posts
       if (!json_response.is_error) {
@@ -200,19 +212,25 @@ function display_posts(posts) {
             // It makes a fetch request to the server to update the number of likes for the post
             like_button.addEventListener('click', async () => {
 
-                  // PUT request to the server, to update likes in the database
-                  const response = await fetch(myurls.like, {
-                        method: 'PUT',
-                        headers: {
-                              'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
-                        },
-                        body: JSON.stringify({
-                              post_id: post.id
-                        })
-                  });
+                  let json_response;
+                  try {
+                        // PUT request to the server, to update likes in the database
+                        const response = await fetch(myurls.like, {
+                              method: 'PUT',
+                              headers: {
+                                    'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+                              },
+                              body: JSON.stringify({
+                                    post_id: post.id
+                              })
+                        });
 
-                  // Jsonifies the server's response
-                  const json_response = await response.json();
+                        // Jsonifies the server's response
+                        json_response = await response.json();
+                  } catch {
+                        display_message(true, "Failed to save your like in the server");
+                        return;
+                  }
 
                   // Updates the number of likes for the post in the DOM
                   post_likes.innerHTML = json_response.likes;
@@ -302,16 +320,21 @@ function display_users(json_response) {
                   }
 
                   // Sends a fetch request to update the user's status in the server
-                  await fetch(myurls.follow, {
-                        method: 'PUT',
-                        headers: {
-                              'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
-                        },
-                        body: JSON.stringify({
-                              user_id: user.id,
-                              start_following: user.is_followed
-                        })
-                  });
+                  try {
+                        await fetch(myurls.follow, {
+                              method: 'PUT',
+                              headers: {
+                                    'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+                              },
+                              body: JSON.stringify({
+                                    user_id: user.id,
+                                    start_following: user.is_followed
+                              })
+                        });
+                  } catch {
+                        display_message(true, "The server could not process your request to follow the user");
+                        return;
+                  }
 
                   // Re-renders all user information in the DOM by calling the parent function again
                   display_users(json_response);

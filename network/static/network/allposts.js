@@ -22,10 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // Gets posts from the database via a get request
 async function load_posts(url, paginating=false) {
 
-      // Makes a fetch request to the server
-      const response = await fetch(url);
-      // Jsonifies the response
-      const json_response = await response.json();
+      let json_response;
+      try {
+            // Makes a fetch request to the server
+            const response = await fetch(url);
+            // Jsonifies the response
+            json_response = await response.json();
+      } catch {
+            display_message(true, "Failed to load the posts from the server")
+      }
 
       // Render posts in the DOM
       display_posts(json_response.posts);
