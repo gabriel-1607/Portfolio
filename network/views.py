@@ -147,7 +147,8 @@ def profile_view(request):
     if request.method != "GET":
         return JsonResponse(
             {
-                "error" : "Only get method is allowed"
+                "is_error": True,
+                "message" : "Only get method is allowed"
             },
         status=400)
     
@@ -179,7 +180,8 @@ def follow_view(request):
     if request.method != "PUT":
         return JsonResponse(
             {
-                "error" : "Only put method is allowed"
+                "is_error": True,
+                "message" : "Only put method is allowed"
             },
         status=400)
     
@@ -204,6 +206,7 @@ def follow_view(request):
 
     # Returns sucess message
     return JsonResponse({
+        "is_error": False,
         "message": "The follow status was successfully updated"
     }, status=200)
 
@@ -215,7 +218,8 @@ def like_view(request):
     if request.method != "PUT":
         return JsonResponse(
             {
-                "error" : "Only put method is allowed"
+                "is_error": True,
+                "message" : "Only put method is allowed"
             },
         status=400)
     
@@ -247,7 +251,8 @@ def following_view(request):
     if request.method != "GET":
         return JsonResponse(
             {
-                "error" : "Only get method is allowed"
+                "is_error": True,
+                "message" : "Only get method is allowed"
             },
         status=400)
     

@@ -55,6 +55,10 @@ async function load_posts(url, paginating=false, hide_users=false, profile=false
             display_message(true, "Failed to properly get the posts from the server");
             return;
       }
+      if (json_response.is_error) {
+            display_message(true, json_response.message);
+            return;
+      }
 
       // Render posts in the DOM
       display_posts(json_response.posts);
@@ -128,6 +132,10 @@ async function post_compose(event) {
             display_message(true, "Failed to save the post");
             return;
       }
+      if (json_response.is_error) {
+            display_message(true, json_response.message);
+            return;
+      }
 
       // Displays custom message from the server
       display_message(response.is_error, response.message);
@@ -165,14 +173,16 @@ async function edit_post() {
             display_message(true, "Failed to update the post in the server");
             return;
       }
-
-      // If there has not been an error, load the same page of posts
-      if (!json_response.is_error) {
-            load_posts(paginator.url + '?p=' + paginator.current_page, true);
+      if (json_response.is_error) {
+            display_message(true, json_response.message);
+            return;
       }
 
+      // If there has not been an error, load the same page of posts
+      load_posts(paginator.url + '?p=' + paginator.current_page, true);
+
       // Render the message from the server response
-      display_message(json_response.is_error, json_response.message);
+      display_message(false, json_response.message);
 }
 
 
@@ -229,6 +239,10 @@ function display_posts(posts) {
                         json_response = await response.json();
                   } catch {
                         display_message(true, "Failed to save your like in the server");
+                        return;
+                  }
+                  if (json_response.is_error) {
+                        display_message(true, json_response.message);
                         return;
                   }
 
@@ -333,6 +347,10 @@ function display_users(json_response) {
                         });
                   } catch {
                         display_message(true, "The server could not process your request to follow the user");
+                        return;
+                  }
+                  if (json_response.is_error) {
+                        display_message(true, json_response.message);
                         return;
                   }
 
