@@ -26,7 +26,7 @@ class NewPostForm(forms.ModelForm):
             "content" : ""
         }
 
-
+# TODO: Validate only GET request allowed
 # Default route to load the index.html template with the modelform
 def index(request):
     if request.user.is_authenticated:
@@ -99,6 +99,7 @@ def post_view(request):
         status=200)
 
 
+# TODO: merge with post_view, by providing an if statement to check wether the method is PUT
 # Route to edit a post
 @login_required
 def edit_view(request):
@@ -173,6 +174,7 @@ def profile_view(request):
     status=200)
 
 
+# TODO: Merge this function with following, one having GET method, the other PUT
 @login_required
 def follow_view(request):
 

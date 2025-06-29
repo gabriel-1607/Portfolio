@@ -31,6 +31,10 @@ async function load_posts(url, paginating=false) {
       } catch {
             display_message(true, "Failed to load the posts from the server")
       }
+      if (json_response.is_error) {
+            display_message(true, json_response.message);
+            return;
+      }
 
       // Render posts in the DOM
       display_posts(json_response.posts);
