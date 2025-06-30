@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('#profile_button').addEventListener('click', () => {load_posts(myurls.profile, undefined, undefined, true);});
       document.querySelector('#all_posts_button').addEventListener('click', () => {load_posts(myurls.post, undefined, true);});
       document.querySelector('#post_submit').addEventListener('click', post_compose);
-      document.querySelector('#following_button').addEventListener('click', () => {load_posts(myurls.following, undefined, true);});
+      document.querySelector('#following_button').addEventListener('click', () => {load_posts(myurls.follow, undefined, true);});
       document.querySelector('#save_changes').addEventListener('click', edit_post);
       document.querySelectorAll('#paginator_button').forEach(button => {
             button.addEventListener('click', () => {paginator_page(button.getAttribute('data-direction'));});
@@ -52,7 +52,7 @@ async function load_posts(url, paginating=false, hide_users=false, profile=false
             // Jsonifies the response
             json_response = await response.json();
       } catch {
-            display_message(true, "Failed to properly get the posts from the server");
+            display_message(true, "Failed to properly get the posts from the server.");
             return;
       }
       if (json_response.is_error) {
@@ -127,9 +127,9 @@ async function post_compose(event) {
             response = await response.json();
       }
       // Handles errors in the fetch request
-      catch (error) {
+      catch {
             // Error message
-            display_message(true, "Failed to save the post");
+            display_message(true, "Failed to save the new post in the database");
             return;
       }
       if (json_response.is_error) {
@@ -156,7 +156,7 @@ async function edit_post() {
       let json_response;
       try {
             // Makes a PUT request to update the post in the database
-            const response = await fetch(myurls.edit, {
+            const response = await fetch(myurls.post, {
                   method: 'PUT',
                   headers: {
                         'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value

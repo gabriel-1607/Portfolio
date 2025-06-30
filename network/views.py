@@ -2,6 +2,7 @@ from django.core.paginator import Paginator
 import json
 from django.http import JsonResponse
 from django import forms
+from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
@@ -26,20 +27,23 @@ class NewPostForm(forms.ModelForm):
             "content" : ""
         }
 
-# TODO: Validate only GET request allowed
 # Default route to load the index.html template with the modelform
+@require_http_methods(["GET"])
 def index(request):
+    
     if request.user.is_authenticated:
         form = NewPostForm()
     else:
         form = None
+        
     return render(request, "network/index.html", {
         "form": form
     })
 
 
-# Route that handles JSON requests to save posts with the POST method
-# and to return all posts via the GET method
+# Route that handles JSON requests to save posts with the POST method,
+# to edit a post via PUT method, and to return all posts via the GET method
+@require_http_methods(["GET", "POST", "PUT"])
 def post_view(request):
 
     # Creates a post when the request method is post and ensures it is a user doing so
@@ -97,15 +101,9 @@ def post_view(request):
                 "max_page": posts.num_pages
             },
         status=200)
-
-
-# TODO: merge with post_view, by providing an if statement to check wether the method is PUT
-# Route to edit a post
-@login_required
-def edit_view(request):
-
-    # Ensures that the request method is PUT
-    if request.method == "PUT":
+    
+    # If the method is PUT, updates the edit on a post
+    elif request.method == "PUT" and request.user.is_authenticated:
 
         # Gets the data from the request
         data = json.loads(request.body)
@@ -139,19 +137,11 @@ def edit_view(request):
             "is_error": False,
             "message": "Your post has been successfully edited"
         }, status=200)
-
+    
 
 @login_required
+@require_http_methods(["GET"])
 def profile_view(request):
-
-    # Ensures the method is GET
-    if request.method != "GET":
-        return JsonResponse(
-            {
-                "is_error": True,
-                "message" : "Only get method is allowed"
-            },
-        status=400)
     
     # Tries to get the page from the request
     if request.GET.get("p"):
@@ -174,56 +164,61 @@ def profile_view(request):
     status=200)
 
 
-# TODO: Merge this function with following, one having GET method, the other PUT
 @login_required
+@require_http_methods(["GET", "PUT"])
 def follow_view(request):
 
-    # Ensures the method is PUT
-    if request.method != "PUT":
+    if request.method == "GET":
+
+        # Tries to get the page from the request
+        if request.GET.get("p"):
+            page = int(request.GET.get("p"))
+        else:
+            page = 1
+
+        # Gets the posts from the database and paginates them
+        followed_users = User.objects.get(pk=request.user.id).following.all()
+        posts = Paginator(Post.objects.filter(user__in=followed_users).order_by('-timestamp'), 10)
+
+        # Sends posts to the client
         return JsonResponse(
             {
-                "is_error": True,
-                "message" : "Only put method is allowed"
+                "posts": [post.serialize() for post in posts.get_page(page)],
+                "max_page": posts.num_pages
             },
-        status=400)
+        status=200)
     
-    # Gets the data from the request
-    data = json.loads(request.body)
+    elif request.method == "PUT":
 
-    # Gets and validates the users from the database to assign followed status
-    logged_user = User.objects.get(pk=request.user.id)
-    try:
-        followed_user = User.objects.get(pk=data.get("user_id"))
-    except User.DoesNotExist:
-            return JsonResponse({
-                "is_error": True,
-                "message": "No user found as author of the post"
-            }, status=400)
+        # Gets the data from the request
+        data = json.loads(request.body)
 
-    # Modifies the users from the database
-    if data.get("start_following"):
-        logged_user.following.add(followed_user)
-    else:
-        logged_user.following.remove(followed_user)
+        # Gets and validates the users from the database to assign followed status
+        logged_user = User.objects.get(pk=request.user.id)
+        try:
+            followed_user = User.objects.get(pk=data.get("user_id"))
+        except User.DoesNotExist:
+                return JsonResponse({
+                    "is_error": True,
+                    "message": "No user found as author of the post"
+                }, status=400)
 
-    # Returns sucess message
-    return JsonResponse({
-        "is_error": False,
-        "message": "The follow status was successfully updated"
-    }, status=200)
+        # Modifies the users from the database
+        if data.get("start_following"):
+            logged_user.following.add(followed_user)
+        else:
+            logged_user.following.remove(followed_user)
+
+        # Returns sucess message
+        return JsonResponse({
+            "is_error": False,
+            "message": "The follow status was successfully updated"
+        }, status=200)
 
 
 @login_required
+@require_http_methods(["PUT"])
 def like_view(request):
-
-    # Ensures the request method is PUT
-    if request.method != "PUT":
-        return JsonResponse(
-            {
-                "is_error": True,
-                "message" : "Only put method is allowed"
-            },
-        status=400)
     
     # Gets the data from the request
     data = json.loads(request.body)
@@ -244,37 +239,6 @@ def like_view(request):
     return JsonResponse({
         "likes": post.likedby.count()
     }, status=200)
-
-
-@login_required
-def following_view(request):
-
-    # Ensures that the request method is GET
-    if request.method != "GET":
-        return JsonResponse(
-            {
-                "is_error": True,
-                "message" : "Only get method is allowed"
-            },
-        status=400)
-    
-    # Tries to get the page from the request
-    if request.GET.get("p"):
-        page = int(request.GET.get("p"))
-    else:
-        page = 1
-
-    # Gets the posts from the database and paginates them
-    followed_users = User.objects.get(pk=request.user.id).following.all()
-    posts = Paginator(Post.objects.filter(user__in=followed_users).order_by('-timestamp'), 10)
-
-    # Sends posts to the client
-    return JsonResponse(
-        {
-            "posts": [post.serialize() for post in posts.get_page(page)],
-            "max_page": posts.num_pages
-        },
-    status=200)
 
 
 def login_view(request):
