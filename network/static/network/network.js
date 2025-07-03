@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('#id_content').value = '';
             document.querySelector('#my-modal-title').innerHTML = 'Your new post';
             document.querySelector('#save_changes').classList.add('d-none');
+            document.querySelector('#post_submit').classList.remove('d-none');
       });
 
       // Loads posts from the database
@@ -110,7 +111,6 @@ async function post_compose(event) {
 
       // Disables the submit button while the fetch request is in process
       submit_button = document.querySelector('#post_submit');
-      submit_button.disabled = true;
 
       try {
             // Makes a fetch request to the server, to save the post
@@ -140,9 +140,6 @@ async function post_compose(event) {
       // Displays custom message from the server
       display_message(response.is_error, response.message);
       load_posts(paginator.url + '?p=' + paginator.current_page, true);
-
-      // Re-enables the submit button
-      submit_button.disabled = false;
 
 }
 
@@ -267,6 +264,8 @@ function display_posts(posts) {
                   document.querySelector('#id_content').value = post.content;
                   // Displays the "save changes" button
                   document.querySelector('#save_changes').classList.remove('d-none');
+                  // Hides the "save post" button
+                  document.querySelector('#post_submit').classList.add('d-none');
                   // Updates the global variable post_id to target the current post
                   post_id = post.id;
             });

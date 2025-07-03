@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django.test import TestCase, Client
 
 from .models import User, Post
@@ -113,7 +114,18 @@ class TestPostModel(TestCase):
         self.assertEqual(p1s["timestamp"], p1.timestamp.strftime("%b %#d" ) + p1.ordinalsuffix() + p1.timestamp.strftime(" %Y, %I:%M %p"))
         self.assertEqual(p1s["user"], p1.user.username)
 
+class TestViews(TestCase):
 
-# The juicy part of the tests is getting at the client part and making requests to my urls,
-# thus testing my view functions
-# Also juicy is using selenium to test my javascript functions
+    def setUp(self):
+        u1 = User.objects.create(username="TestUser1")
+        p1 = Post.objects.create(content="Hello, world!", user=u1)
+        u1.set_password("password")
+        u1.save()
+    
+    def test_index_template(self):
+        """ Checks that the correct template is returned by the index view """
+        c = Client()
+        c.login(username="TestUser1", password="password")
+        response = c.get(reverse("index"))
+        self.assertTrue("index.html" in [template.name.split("/")[-1] for template in response.templates])
+        self.assertTrue(response.context["form"])

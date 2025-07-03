@@ -117,7 +117,13 @@ def post_view(request):
             }, status=400)
         
         # Finds the post in the database to be edited
-        mypost = Post.objects.get(pk=int(data.get("id")))
+        try:
+            mypost = Post.objects.get(pk=int(data.get("id")))
+        except Post.DoesNotExist:
+            return JsonResponse({
+                "is_error": True,
+                "message": "There is no post with that ID"
+            })
 
         # Validates that it is the author of the post that is trying to edit it
         if mypost.user != request.user:
@@ -159,7 +165,7 @@ def profile_view(request):
             "following_number": User.objects.get(pk=request.user.id).following.count(),
             "posts": [post.serialize() for post in posts.get_page(page)],
             "max_page": posts.num_pages,
-            "users": [user.serialize(request.user) for user in User.objects.exclude(pk=request.user.id)]
+            "users": [user.serialize(request.user) for user in User.objects.exclude(pk=request.user.id).order_by("username")]
         },
     status=200)
 
